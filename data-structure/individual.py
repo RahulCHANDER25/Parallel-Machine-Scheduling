@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 
 class Individual:
     """The Data structure used to represent the population is: `List[List[int]]`,
@@ -14,6 +14,22 @@ class Individual:
 
     def __repr__(self):
         return self.__str__()
+
+    def copy(self) -> "Individual":
+        return Individual([jobs.copy() for jobs in self.scheduling])
+
+    @staticmethod
+    def add_one_to_job_ids(job_ids: List[int]) -> List[int]:
+        return [job_id + 1 for job_id in job_ids]
+
+    def format_solution(self, makespan: float) -> Dict:
+        return {
+            "makespan": int(makespan),
+            "schedule": {
+                str(machine_id): Individual.add_one_to_job_ids(machine_jobs)
+                for machine_id, machine_jobs in enumerate(self.scheduling)
+            },
+        }
 
 # Example:
 individual: Individual = Individual([
