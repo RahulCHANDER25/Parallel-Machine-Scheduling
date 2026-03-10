@@ -42,13 +42,20 @@ constraint forall (i in 1..n) (
     )
 );
 
+% no hole
+constraint forall(k in 0..m-1) (
+    forall(p in 1..n-1) (
+        (schedule[k, p] == 0) -> (schedule[k, p+1] == 0)
+    )
+);
+
 function var int: machine_time(int: k) =
     sum(p in 1..n) (
         if schedule[k, p] > 0 then duration_fix[schedule[k, p], k] else 0 endif
     ) + sum(p1 in 1..n, p2 in 1..n where p1 < p2) (
         if schedule[k,p1] > 0 /\ schedule[k,p2] > 0
         then setup_fix[schedule[k,p1], schedule[k,p2], k] else 0 endif
-    );
+    ) + if (schedule[k, 1] > 0) then release_fix[schedule[k, 1], k] else 0 endif;
 
 var int: makespan = max(k in 0..m-1) (machine_time(k));
 constraint makespan <= horizon;
@@ -57,11 +64,9 @@ solve minimize makespan;
 
 output[
     "makespan: \(makespan)\n",
-    "capable_jobs: \(capable_jobs)\n",
-    "capable: \(capable)\n",
     "schedule: {\n",
     concat(
-        ["  \(i): \([schedule[i,k] | k in 1..n where schedule[i,k] != 0]),\n" | i in 0..m-1]
+        ["  \(i): \([schedule[i,k] | k in 1..n where schedule[i, k] != 0]),\n" | i in 0..m-1]
     ),
     "}\n"
 ];
