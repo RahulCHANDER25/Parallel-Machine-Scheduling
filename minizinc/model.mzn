@@ -68,7 +68,7 @@ function var int: machine_time(int: k, int: pos) =
 var int: makespan = max(k in 0..m-1) (machine_time(k, n));
 constraint makespan <= horizon;
 
-solve minimize makespan;
+solve minimize (sum (k in 0..m-1) (machine_time(k, n)) + makespan);
 
 output[
     "{\"makespan\": \(makespan),",

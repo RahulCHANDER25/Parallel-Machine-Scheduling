@@ -72,10 +72,11 @@ def setup(path: str = "../examples/75_3_5_H.json") -> ZincInstanceData:
 
 def run():
     data = setup(path=sys.argv[1] if len(sys.argv) > 1 else "../examples/75_3_5_H.json")
-    runner = ZincRunner(data, "./model.mzn")
-    result = runner.solve()
-    result_json = json.loads(str(result))
-    print(json.dumps(result_json, indent=4))
+    print(data.to_dzn())
+    # runner = ZincRunner(data, "./model.mzn")
+    # result = runner.solve()
+    # result_json = json.loads(str(result))
+    # print(json.dumps(result_json, indent=4))
 
 
 if __name__ == "__main__":
