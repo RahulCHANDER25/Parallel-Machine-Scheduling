@@ -1,5 +1,6 @@
-from minizinc import Instance, Model, Solver
+from minizinc import Instance, Model, Result, Solver
 import sys
+import json
 
 sys.path.append("../data-structure")
 from instance_data import InstanceData
@@ -70,12 +71,11 @@ def setup(path: str = "../examples/75_3_5_H.json") -> ZincInstanceData:
 
 
 def run():
-    data = setup()
-    # print(data.to_dzn())
+    data = setup(path=sys.argv[1] if len(sys.argv) > 1 else "../examples/75_3_5_H.json")
     runner = ZincRunner(data, "./model.mzn")
     result = runner.solve()
-    print(result)
-    pass
+    result_json = json.loads(str(result))
+    print(json.dumps(result_json, indent=4))
 
 
 if __name__ == "__main__":

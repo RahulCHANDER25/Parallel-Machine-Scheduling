@@ -49,24 +49,33 @@ constraint forall(k in 0..m-1) (
     )
 );
 
-function var int: machine_time(int: k) =
-    sum(p in 1..n) (
-        if schedule[k, p] > 0 then duration_fix[schedule[k, p], k] else 0 endif
-    ) + sum(p1 in 1..n, p2 in 1..n where p1 < p2) (
-        if schedule[k,p1] > 0 /\ schedule[k,p2] > 0
-        then setup_fix[schedule[k,p1], schedule[k,p2], k] else 0 endif
-    ) + if (schedule[k, 1] > 0) then release_fix[schedule[k, 1], k] else 0 endif;
+function var int: machine_time(int: k, int: pos) =
+    let {
+        var 0..n: curr = schedule[k, pos],
+        var 0..n: prev = if pos > 1 then schedule[k, pos-1] else 0 endif
+    } in
+    if curr == 0 then
+        if pos > 1 then machine_time(k, pos-1) else 0 endif
+    else
+        max(
+            % Path A: Wait for the machine to be free + setup
+            (if pos > 1 then machine_time(k, pos-1) + (if prev > 0 then setup_fix[prev, curr, k] else 0 endif) else 0 endif),
+            % Path B: Wait for the job to be released
+            release_fix[curr, k]
+        ) + duration_fix[curr, k]
+    endif;
 
-var int: makespan = max(k in 0..m-1) (machine_time(k));
+var int: makespan = max(k in 0..m-1) (machine_time(k, n));
 constraint makespan <= horizon;
 
 solve minimize makespan;
 
 output[
-    "makespan: \(makespan)\n",
-    "schedule: {\n",
-    concat(
-        ["  \(i): \([schedule[i,k] | k in 1..n where schedule[i, k] != 0]),\n" | i in 0..m-1]
+    "{\"makespan\": \(makespan),",
+    "\"schedule\": {",
+    join(
+        ",",
+        ["  \"\(i)\": \([schedule[i,k] | k in 1..n where schedule[i, k] != 0])" | i in 0..m-1]
     ),
-    "}\n"
+    "}}"
 ];
