@@ -29,13 +29,18 @@ class ZincInstanceData:
 
     def to_dzn(self) -> str:
         """Convert the instance data to a string in the format of a .dzn file."""
+
+        duration_flattened = [item for sublist in self._duration for item in sublist]
+        release_flattened = [item for sublist in self._release for item in sublist]
+        setup_flattened = [item for sublist in self._setup for innerlist in sublist for item in innerlist]
+
         dzn_str = f"n = {self._n};\n"
         dzn_str += f"m = {self._m};\n"
         dzn_str += f"horizon = {self._horizon};\n"
         dzn_str += f"capable = {[set(n) for n in self._capable]};\n"
-        dzn_str += f"duration = {self._duration};\n"
-        dzn_str += f"release = {self._release};\n"
-        dzn_str += f"setup = {self._setup};\n"
+        dzn_str += f"duration = array2d(1..n, 0..m-1, [{', '.join(str(d) for d in duration_flattened)}]);\n"
+        dzn_str += f"release = array2d(1..n, 0..m-1, [{', '.join(str(r) for r in release_flattened)}]);\n"
+        dzn_str += f"setup = array3d(1..n, 1..n, 0..m-1, [{', '.join(str(s) for s in setup_flattened)}]);\n"
         return dzn_str
 
 
@@ -59,8 +64,8 @@ class ZincRunner:
     def _load_data(self) -> None:
         self._instance.add_string(self._data.to_dzn())
 
-    def solve(self):
-        return self._instance.solve()
+    async def solve(self):
+        return await self._instance.solve_async()
 
 
 def setup(path: str = "../examples/75_3_5_H.json") -> ZincInstanceData:
